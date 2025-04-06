@@ -16,5 +16,5 @@ async fn main() {
       } 
     };
 
-    info!("ENV has been loaded: {:?}",dotenvy_env);
+    info!("ENV has been loaded");
 }
