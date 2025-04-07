@@ -1,11 +1,11 @@
 use chrono::NaiveDateTime;
 use diesel::{prelude::{Identifiable, Insertable, Queryable}, Selectable};
 
-use crate::infrastructure::postgres::schema::adventurers;
+use crate::infrastructure::postgres::schema::guild_commanders;
 
 
 #[derive(Debug,Clone,Identifiable,Selectable,Queryable)]
-#[diesel(table_name = adventurers)]
+#[diesel(table_name = guild_commanders)]
 pub struct GuildCommanderEntity {
     pub id:i32,
     pub username: String,
@@ -15,7 +15,7 @@ pub struct GuildCommanderEntity {
 }
 
 #[derive(Debug,Clone,Insertable,Queryable)]
-#[diesel(table_name = adventurers)]
+#[diesel(table_name = guild_commanders)]
 pub struct RegisterGuildCommanderEntity {
     pub username: String,
     pub password: String,
