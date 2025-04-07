@@ -26,10 +26,10 @@ where
         }
     }
 
-    async fn view_detail(&self, quest_id: i32) -> Result<QuestEntity> {
+    pub async fn view_details(&self, quest_id: i32) -> Result<QuestEntity> {
         unimplemented!()
     }
-    async fn board_checking(&self, filter: &BoardCheckingFilter) -> Result<Vec<QuestEntity>> {
+    pub async fn board_checking(&self, filter: &BoardCheckingFilter) -> Result<Vec<QuestEntity>> {
         unimplemented!()
     }
 

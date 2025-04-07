@@ -7,7 +7,7 @@ use tower_http::{cors::{Any, CorsLayer}, limit::RequestBodyLimitLayer, timeout::
 use tracing::info;
 
 use crate::{
-    config::config_model::DotEnvyConfig, infrastructure::postgres::postgres_connection::PgPoolSquad,
+    config::config_model::DotEnvyConfig, infrastructure::{axum_http::routers, postgres::postgres_connection::PgPoolSquad},
 };
 
 use super::default_routers;
@@ -15,6 +15,14 @@ use super::default_routers;
 pub async fn start(config: Arc<DotEnvyConfig>, db_pool: Arc<PgPoolSquad>) -> Result<()> {
     let app = Router::new()
         .fallback(default_routers::not_found)
+        .nest("/journey-ledger",routers::journey_ledger::routes(Arc::clone(&db_pool)))
+        .nest("/quest-ops",routers::quest_ops::routes(Arc::clone(&db_pool)))
+        .nest("/crew-switchboard",routers::crew_switchboard::routes(Arc::clone(&db_pool)))
+        .nest("/guild-commanders",routers::guild_commanders::routes(Arc::clone(&db_pool)))
+        .nest("/adventurers",routers::adventurers::routes(Arc::clone(&db_pool)))
+        .nest("/quest-viewing",routers::quest_viewing::routes(Arc::clone(&db_pool)))
+        .nest("/authentication",routers::authentication::routes(Arc::clone(&db_pool)))
+
         .route("/health-check",get(default_routers::health_check))
         //http:localhost:8080/health-check
         .layer(TimeoutLayer::new(Duration::from_secs(config.server.timeout)))

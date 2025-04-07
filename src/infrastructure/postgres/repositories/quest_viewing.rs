@@ -20,7 +20,7 @@ impl QuestViewingPostgres {
 
 #[async_trait]
 impl QuestViewingRepository for QuestViewingPostgres {
-    async fn view_detail(&self, quest_id: i32) -> Result<QuestEntity> {
+    async fn view_details(&self, quest_id: i32) -> Result<QuestEntity> {
         unimplemented!()
     }
     async fn board_checking(&self, filter: &BoardCheckingFilter) -> Result<Vec<QuestEntity>> {
