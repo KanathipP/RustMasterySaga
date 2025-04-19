@@ -14,7 +14,7 @@ where
 {
     adventurers_repository: Arc<T>,
 }
-
+    
 impl<T> AdventurersUseCase<T>
 where
     T: AdventurersRepository + Send + Sync,
