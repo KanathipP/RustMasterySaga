@@ -3,7 +3,7 @@ use std::sync::Arc;
 use anyhow::Result;
 
 
-use crate::domain::{entities::quests::{AddQuestEntity, EditQuestEntity}, repositories::{quest_ops::QuestOpsRepository, quest_viewing::QuestViewingRepository}};
+use crate::domain::{entities::quests::{AddQuestEntity, EditQuestEntity}, repositories::{quest_ops::QuestOpsRepository, quest_viewing::QuestViewingRepository}, value_objects::quest_model::AddQuestModel};
 
 use super::quest_viewing;
 
@@ -29,8 +29,13 @@ T2: QuestViewingRepository + Send + Sync
         }
     }
 
-    pub async fn add(&self , add_quest_entity: AddQuestEntity) -> Result<i32> {
-        unimplemented!()
+    pub async fn add(&self , guild_commander_id: i32,add_quest_model: AddQuestModel) -> Result<i32> {
+        let add_quest_entity = add_quest_model.to_entity(guild_commander_id);
+
+        let result = self.quest_ops_repository.add(add_quest_entity).await?;
+
+        Ok(result)
+
     }
     pub async fn edit(&self, quest_id: i32, edit_quest_entity: EditQuestEntity) -> Result<i32>{
         unimplemented!()
