@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use axum::{extract::{Path, Query, State}, response::IntoResponse, routing::get, Extension, Json, Router};
+use axum::{extract::{Path, Query, State}, http::StatusCode, response::IntoResponse, routing::get, Extension, Json, Router};
 
 use crate::{application::usecases::quest_viewing::QuestViewingUseCase, domain::{repositories::quest_viewing::QuestViewingRepository, value_objects::board_checking_filter::BoardCheckingFilter}, infrastructure::postgres::{postgres_connection::PgPoolSquad, repositories::quest_viewing::QuestViewingPostgres}};
 
@@ -11,27 +11,33 @@ pub fn routes(db_pool: Arc<PgPoolSquad>) -> Router {
 
     Router::new()
         .route("/:quest_id", get(view_details))
-        .route("/board_checking", get(board_checking))
+        .route("/board-checking", get(board_checking))
         .with_state(Arc::new(quest_viewing_use_case))
 }
 
 pub async fn view_details<T>(
-    State(adventurers_use_case): State<Arc<QuestViewingUseCase<T>>>,
+    State(quest_viewing_use_case): State<Arc<QuestViewingUseCase<T>>>,
     Path(quest_id) : Path<i32>
 ) -> impl IntoResponse
 where
     T: QuestViewingRepository + Send + Sync,
 {
-    axum::Json("Not implemented yet")
+    match quest_viewing_use_case.view_details(quest_id).await {
+        Ok(quest_model) => (StatusCode::OK,Json(quest_model)).into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response()
+    }
 }
 
 pub async fn board_checking<T>(
-    State(adventurers_use_case): State<Arc<QuestViewingUseCase<T>>>,
+    State(quest_viewing_use_case): State<Arc<QuestViewingUseCase<T>>>,
     filter: Query<BoardCheckingFilter>,
 ) -> impl IntoResponse
 where
     T: QuestViewingRepository + Send + Sync,
 {
-    axum::Json("Not implemented yet")
+    match quest_viewing_use_case.board_checking(&filter).await {
+        Ok(quest_model) => (StatusCode::OK,Json(quest_model)).into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response()
+    }
 }
 
