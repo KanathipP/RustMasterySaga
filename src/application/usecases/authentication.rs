@@ -95,7 +95,7 @@ where
 
 
     pub async fn guild_commanders_login(&self, login_model : LoginModel) -> Result<Passport> {
-        let secret_env = get_adventurers_secret_env()?;
+        let secret_env = get_guild_commanders_secret_env()?;
 
         let guild_commander = self.guild_commanders_repository.find_by_username(login_model.username.clone()).await?;
 

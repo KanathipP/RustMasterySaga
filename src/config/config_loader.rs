@@ -45,7 +45,7 @@ pub fn get_guild_commanders_secret_env() -> Result<GuildCommandersSecret> {
     dotenvy::dotenv().ok();
 
     Ok(GuildCommandersSecret {
-        secret: std::env::var("JWT_GUILD_COMMANDER_SECRET").expect("JWT_GUILD_COMMANDERSECRET is invalid"),
+        secret: std::env::var("JWT_GUILD_COMMANDER_SECRET").expect("JWT_GUILD_COMMANDER_SECRET is invalid"),
         refresh_secret: std::env::var("JWT_GUILD_COMMANDER_REFRESH_SECRET").expect("JWT_GUILD_COMMANDER_REFRESH_SECRET is invalid"),
 
     })
