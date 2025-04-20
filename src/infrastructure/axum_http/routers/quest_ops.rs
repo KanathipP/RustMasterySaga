@@ -1,7 +1,12 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{Path, State}, middleware, response::IntoResponse, routing::{delete, patch, post}, Extension, Json, Router
+    Extension, Json, Router,
+    extract::{Path, State},
+    http::StatusCode,
+    middleware,
+    response::IntoResponse,
+    routing::{delete, patch, post},
 };
 
 use crate::{
@@ -10,10 +15,13 @@ use crate::{
         repositories::{quest_ops::QuestOpsRepository, quest_viewing::QuestViewingRepository},
         value_objects::quest_model::{AddQuestModel, EditQuestModel},
     },
-    infrastructure::{axum_http::middleware::guild_commanders_authorization, postgres::{
-        postgres_connection::PgPoolSquad,
-        repositories::{quest_ops::QuestOpsPostgres, quest_viewing::QuestViewingPostgres},
-    }},
+    infrastructure::{
+        axum_http::middleware::guild_commanders_authorization,
+        postgres::{
+            postgres_connection::PgPoolSquad,
+            repositories::{quest_ops::QuestOpsPostgres, quest_viewing::QuestViewingPostgres},
+        },
+    },
 };
 
 pub fn routes(db_pool: Arc<PgPoolSquad>) -> Router {
@@ -34,14 +42,23 @@ pub fn routes(db_pool: Arc<PgPoolSquad>) -> Router {
 
 pub async fn add<T1, T2>(
     State(quest_ops_use_case): State<Arc<QuestOpsUseCase<T1, T2>>>,
-    Extension(add_quest_entity): Extension<i32>,
+    Extension(guild_commander_id): Extension<i32>,
     Json(add_quest_model): Json<AddQuestModel>,
 ) -> impl IntoResponse
 where
     T1: QuestOpsRepository + Send + Sync,
     T2: QuestViewingRepository + Send + Sync,
 {
-    axum::Json("Not implemented yet")
+    match quest_ops_use_case
+        .add(guild_commander_id, add_quest_model)
+        .await
+    {
+        Ok(quest_id) => {
+            let response = format!("Add quest success with id: {}", quest_id);
+            (StatusCode::OK, response)
+        }
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+    }
 }
 
 pub async fn edit<T1, T2>(
@@ -54,17 +71,35 @@ where
     T1: QuestOpsRepository + Send + Sync,
     T2: QuestViewingRepository + Send + Sync,
 {
-    axum::Json("Not implemented yet")
+    match quest_ops_use_case
+        .edit(quest_id,guild_commander_id, edit_quest_model)
+        .await
+    {
+        Ok(quest_id) => {
+            let response = format!("Edit quest success with id: {}", quest_id);
+            (StatusCode::OK, response)
+        }
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+    }
 }
 
 pub async fn remove<T1, T2>(
     State(quest_ops_use_case): State<Arc<QuestOpsUseCase<T1, T2>>>,
     Extension(guild_commander_id): Extension<i32>,
-    Json(add_quest_model): Json<AddQuestModel>,
+    Path(quest_id): Path<i32>,
 ) -> impl IntoResponse
 where
     T1: QuestOpsRepository + Send + Sync,
     T2: QuestViewingRepository + Send + Sync,
 {
-    axum::Json("Not implemented yet")
+    match quest_ops_use_case
+        .remove(quest_id,guild_commander_id)
+        .await
+    {
+        Ok(_) => {
+            let response = format!("Edit quest success with id: {}", quest_id);
+            (StatusCode::OK, response)
+        }
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+    }
 }
