@@ -1,20 +1,31 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{Path, State}, middleware, response::IntoResponse, routing::patch, Extension, Router
+    Extension, Router,
+    extract::{Path, State},
+    http::StatusCode,
+    middleware,
+    response::IntoResponse,
+    routing::patch,
 };
 
 use crate::{
     application::usecases::journey_ledger::JourneyLedgerUseCase,
-    domain::repositories::{
-        journey_ledger::JourneyLedgerRepository, quest_viewing::QuestViewingRepository,
-    },
-    infrastructure::{axum_http::middleware::guild_commanders_authorization, postgres::{
-        postgres_connection::PgPoolSquad,
+    domain::{
         repositories::{
-            journey_ledger::JourneyLedgerPostgres, quest_viewing::QuestViewingPostgres,
-        }
-    }},
+            journey_ledger::JourneyLedgerRepository, quest_viewing::QuestViewingRepository,
+        },
+        value_objects::quest_statuses::QuestStatuses,
+    },
+    infrastructure::{
+        axum_http::middleware::guild_commanders_authorization,
+        postgres::{
+            postgres_connection::PgPoolSquad,
+            repositories::{
+                journey_ledger::JourneyLedgerPostgres, quest_viewing::QuestViewingPostgres,
+            },
+        },
+    },
 };
 
 pub fn routes(db_pool: Arc<PgPoolSquad>) -> Router {
@@ -42,7 +53,21 @@ where
     T1: JourneyLedgerRepository + Send + Sync,
     T2: QuestViewingRepository + Send + Sync,
 {
-    axum::Json("Not implemented yet")
+    match journey_ledger_use_case
+        .in_journey(quest_id, guild_commander_id)
+        .await
+    {
+        Ok(quest_id) => (
+            StatusCode::OK,
+            format!(
+                "Quest id: {} is now {:?}",
+                quest_id,
+                QuestStatuses::InJourney
+            ),
+        )
+            .into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    }
 }
 pub async fn to_completed<T1, T2>(
     State(journey_ledger_use_case): State<Arc<JourneyLedgerUseCase<T1, T2>>>,
@@ -53,7 +78,21 @@ where
     T1: JourneyLedgerRepository + Send + Sync,
     T2: QuestViewingRepository + Send + Sync,
 {
-    axum::Json("Not implemented yet")
+    match journey_ledger_use_case
+        .to_completed(quest_id, guild_commander_id)
+        .await
+    {
+        Ok(quest_id) => (
+            StatusCode::OK,
+            format!(
+                "Quest id: {} is now {:?}",
+                quest_id,
+                QuestStatuses::Completed
+            ),
+        )
+            .into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    }
 }
 pub async fn to_failed<T1, T2>(
     State(journey_ledger_use_case): State<Arc<JourneyLedgerUseCase<T1, T2>>>,
@@ -64,5 +103,15 @@ where
     T1: JourneyLedgerRepository + Send + Sync,
     T2: QuestViewingRepository + Send + Sync,
 {
-    axum::Json("Not implemented yet")
+    match journey_ledger_use_case
+        .to_failed(quest_id, guild_commander_id)
+        .await
+    {
+        Ok(quest_id) => (
+            StatusCode::OK,
+            format!("Quest id: {} is now {:?}", quest_id, QuestStatuses::Failed),
+        )
+            .into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    }
 }
